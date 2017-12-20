@@ -44,7 +44,7 @@ class WpEnqueueManager {
 	 * @param null   $version Version number. Defualt, file modified time.
 	 * @param string $screen  Screen. Default all.
 	 */
-	public function register_styles( $path, $prefix = '', $version = null, $screen = 'all' ) {
+	public static function register_styles( $path, $prefix = '', $version = null, $screen = 'all' ) {
 		foreach ( self::parse_dir( $path, 'css', $prefix ) as $handle => $data ) {
 			if ( is_null( $version ) ) {
 				$this_version = filemtime( $data['path'] );
