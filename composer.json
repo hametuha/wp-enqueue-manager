@@ -1,6 +1,6 @@
 {
     "name": "hametuha/wp-enqueue-manager",
-    "description": "A PHP library for bulk register.",
+    "description": "A WordPress library to bulk register assets.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -11,6 +11,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
+        "php": ">=5.6",
         "symfony/finder": "^3.4"
     },
     "require-dev": {

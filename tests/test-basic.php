@@ -44,4 +44,21 @@ class WpEnqueueManager_Basic_Test extends WP_UnitTestCase {
 		$parsed = WpEnqueueManager::parse_dir( $asset_path, 'js', 'test-' );
 		$this->assertEmpty( $parsed['test-nodep']['deps'] );
 	}
+	
+	/**
+	 * Test string helpers.
+	 */
+	function test_string() {
+		$this->assertEquals( 'MyClassName', WpEnqueueManager::camelize( 'my-class_name' ) );
+	}
+	
+	/**
+	 * Test wp_localize_script
+	 */
+	function test_vars() {
+		$normal_vars = WpEnqueueManager::register_js_var_files( __DIR__ . '/vars' );
+		$this->assertTrue( isset( $normal_vars['my-js-vars'] ) );
+		$this->assertEquals( 'MyJsVars', $normal_vars['my-js-vars']['name'] );
+		$this->assertEquals( 'B', $normal_vars['my-js-vars']['vars']['a'] );
+	}
 }

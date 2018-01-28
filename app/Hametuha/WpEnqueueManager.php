@@ -6,7 +6,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * Manager
  *
- * @package hametuha
+ * @package wp-enqueue-manager
  */
 class WpEnqueueManager {
 
@@ -20,24 +20,31 @@ class WpEnqueueManager {
 	/**
 	 * Bulk register javascripts.
 	 *
-	 * @param string $path   Path to JS dir.
-	 * @param string $prefix Prefix. Default empty.
-	 * @param null $version  Version.
-	 * @param bool $footer   Should render in footer. Default true.
+	 * @param string $path    Path to JS dir.
+	 * @param string $prefix  Prefix. Default empty.
+	 * @param null   $version Version.
+	 * @param bool   $footer  Should render in footer. Default true.
 	 */
 	public static function register_js( $path, $prefix = '', $version = null, $footer = true ) {
-		foreach ( self::parse_dir( $path, 'js', $prefix ) as $handle => $data ) {
-			if ( is_null( $version ) ) {
-				$this_version = filemtime( $data['path'] );
-			} else {
-				$this_version = $version;
+		$function = function() use ( $path, $prefix, $version, $footer ) {
+			foreach ( self::parse_dir( $path, 'js', $prefix ) as $handle => $data ) {
+				if ( is_null( $version ) ) {
+					$this_version = filemtime( $data['path'] );
+				} else {
+					$this_version = $version;
+				}
+				wp_register_script( $handle, $data['url'], $data['deps'], $this_version, $footer );
 			}
-			wp_register_script( $handle, $data['url'], $data['deps'], $this_version, $footer );
+		};
+		if ( did_action( 'init' ) ) {
+			$function();
+		} else {
+			add_action( 'init', $function );
 		}
 	}
 
 	/**
-	 * Regsiter all style.
+	 * Register all style.
 	 *
 	 * @param string $path    Path to directory.
 	 * @param string $prefix  Prefix.
@@ -45,16 +52,23 @@ class WpEnqueueManager {
 	 * @param string $screen  Screen. Default all.
 	 */
 	public static function register_styles( $path, $prefix = '', $version = null, $screen = 'all' ) {
-		foreach ( self::parse_dir( $path, 'css', $prefix ) as $handle => $data ) {
-			if ( is_null( $version ) ) {
-				$this_version = filemtime( $data['path'] );
-			} else {
-				$this_version = $version;
+		$function = function() use ( $path, $prefix, $version, $screen ) {
+			foreach ( self::parse_dir( $path, 'css', $prefix ) as $handle => $data ) {
+				if ( is_null( $version ) ) {
+					$this_version = filemtime( $data['path'] );
+				} else {
+					$this_version = $version;
+				}
+				wp_register_style( $handle, $data['url'], $data['deps'], $this_version, $screen );
 			}
-			wp_register_style( $handle, $data['url'], $data['deps'], $this_version, $screen );
+		};
+		if ( did_action( 'init' ) ) {
+			$function();
+		} else {
+			add_action( 'init', $function );
 		}
 	}
-
+	
 	/**
 	 * Path to file.
 	 *
@@ -123,6 +137,52 @@ class WpEnqueueManager {
 		}
 		return $files;
 	}
-
+	
+	/**
+	 * Parse directory and fetch vars.
+	 *
+	 * @param string $dir Directory name.
+	 *
+	 * @return array
+	 */
+	public static function register_js_var_files( $dir ) {
+		if ( ! is_dir( $dir ) ) {
+			return [];
+		}
+		$finder = new Finder();
+		$registered = [];
+		foreach ( $finder->in( $dir )->name( '*.php' )->files() as $file ) {
+			$path = $file->getPathname();
+			$file_name = basename( $path );
+			if ( preg_match( '#^[_.]#u', $file_name ) ) {
+				continue;
+			}
+			$handle   = str_replace( '.php', '', $file_name );
+			$var_name = self::camelize( $handle );
+			$vars     = include $path;
+			if ( ! is_array( $vars ) ) {
+				continue;
+			}
+			wp_localize_script( $handle, $var_name, $vars );
+			$registered[ $handle ] = [
+				'name' => $var_name,
+				'vars' => $vars,
+			];
+		}
+		return $registered;
+	}
+	
+	/**
+	 * Make kebab case and snake case to camel case.
+	 *
+	 * @param string $string String to be cameled.
+	 *
+	 * @return string
+	 */
+	public static function camelize( $string ) {
+		return implode( '', array_map( function( $str ) {
+			return ucfirst( $str );
+		}, preg_split( '#(-|_)#u', $string ) ) );
+	}
 
 }
