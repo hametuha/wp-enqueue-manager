@@ -3,6 +3,9 @@
     "description": "A WordPress library to bulk register assets.",
     "type": "library",
     "license": "MIT",
+	"scripts": {
+	  "test": "phpunit"
+	},
     "authors": [
         {
             "name": "fumikito",

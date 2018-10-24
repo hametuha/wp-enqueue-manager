@@ -14,6 +14,8 @@ composer require hametuha/wp-enqueue-manager
 Write dependnecies in your assets(js and css) header as comment.
 format is like `wpdeps=dependencies`. CSV ready.
 
+Operations should be done in `init` hook.
+
 ### Javascript
 
 Header file should be like below:

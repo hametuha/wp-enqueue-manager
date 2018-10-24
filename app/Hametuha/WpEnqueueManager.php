@@ -163,6 +163,7 @@ class WpEnqueueManager {
 			if ( ! is_array( $vars ) ) {
 				continue;
 			}
+			$vars = apply_filters( 'wp_enqueue_manager_vars', $vars, $handle );
 			wp_localize_script( $handle, $var_name, $vars );
 			$registered[ $handle ] = [
 				'name' => $var_name,
