@@ -1,5 +1,9 @@
 # wp-enqueue-manager
-Bulk register WordPress assets.
+
+Bulk register WordPress assets with specified folder structure.
+Good shortcut for your theme development.
+
+[![Travis CI master branch](https://travis-ci.org/hametuha/wp-enqueue-manager.svg?branch=master)](https://travis-ci.org/hametuha/wp-enqueue-manager)
 
 ## Installation
 
@@ -14,7 +18,9 @@ composer require hametuha/wp-enqueue-manager
 Write dependnecies in your assets(js and css) header as comment.
 format is like `wpdeps=dependencies`. CSV ready.
 
-Operations should be done in `init` hook.
+This notation will be used for the `deps` argument of `wp_register_script`[(doc)](https://developer.wordpress.org/reference/functions/wp_register_script/) and `wp_register_style`[(doc)](https://developer.wordpress.org/reference/functions/wp_register_style/).
+
+Operations should be done in `init` hook or before. Write codes in your `functions.php`.
 
 ### Javascript
 
@@ -28,6 +34,9 @@ jQuery(document).ready(function($){
   // Do something.
 });
 ```
+
+**NOTICE:** If you use autoprefixer or minify tools, be careful about cleaning up comments.
+
 
 Then, register them all from your theme or plugin.
 
@@ -53,10 +62,15 @@ body{
 And, run `register_styles`.
 
 ```php
-// Register all js in folder.
-// e.g. /assets/js/sample.js will be regsitered as 'my-sample'.
+// Register all css in folder.
+// e.g. /assets/css/sample.css will be regsitered as 'my-sample'.
 Hametuha\WpEnqueueManager::register_styles( __DIR__ . '/assets/, 'my-', '1.0.0' );
 ```
+
+### Versionning
+
+If you are a theme or plugin author, it's proper to pass the version of your theme/plugin.
+Lazy authors may just pass `null` or skip the argument. Then the file modified time will be used as version string.
 
 ## Localization
 
@@ -95,3 +109,6 @@ $('.button').on('click', function(){
 };
 ```
 
+## License
+
+MIT.

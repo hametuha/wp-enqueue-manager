@@ -4,7 +4,7 @@ namespace Hametuha;
 use Symfony\Component\Finder\Finder;
 
 /**
- * Manager
+ * WordPress assets manager
  *
  * @package wp-enqueue-manager
  */
@@ -18,7 +18,7 @@ class WpEnqueueManager {
 	}
 
 	/**
-	 * Bulk register javascripts.
+	 * Bulk register JavaScripts.
 	 *
 	 * @param string $path    Path to JS dir.
 	 * @param string $prefix  Prefix. Default empty.
@@ -68,7 +68,7 @@ class WpEnqueueManager {
 			add_action( 'init', $function );
 		}
 	}
-	
+
 	/**
 	 * Path to file.
 	 *
@@ -81,7 +81,7 @@ class WpEnqueueManager {
 			return [];
 		}
 		// @see {wp-includes/functions.php}
-		$fp = fopen( $file, 'r' );
+		$fp          = fopen( $file, 'r' );
 		$file_header = fread( $fp, 8192 );
 		fclose( $fp );
 		// Make sure we catch CR-only line endings.
@@ -92,7 +92,7 @@ class WpEnqueueManager {
 			return [];
 		} else {
 			list( $match, $deps ) = $matches;
-			$deps = [];
+			$deps                 = [];
 			foreach ( $matches[1] as $dep ) {
 				foreach ( array_map( 'trim', explode( ',', $dep ) ) as $d ) {
 					if ( $d ) {
@@ -115,20 +115,20 @@ class WpEnqueueManager {
 	 */
 	public static function parse_dir( $path, $extension, $prefix = '' ) {
 		$extension = ltrim( $extension, '.' );
-		$regexp = '#/([^._][^/]*)\.' . $extension . '$#u';
+		$regexp    = '#/([^._][^/]*)\.' . $extension . '$#u';
 		if ( ! is_dir( $path ) ) {
 			return [];
 		}
-		$files = [];
+		$files  = [];
 		$finder = new Finder();
 		foreach ( $finder->in( $path )->name( "*.{$extension}" )->files() as $file ) {
 			$file_path = $file->getPathname();
 			if ( ! preg_match( $regexp, $file_path, $match ) ) {
 				continue;
 			}
-			$handle = $prefix . $match[1];
-			$deps = self::grab_deps( $file_path );
-			$url = str_replace( ABSPATH, home_url( '/' ), $file_path );
+			$handle           = $prefix . $match[1];
+			$deps             = self::grab_deps( $file_path );
+			$url              = str_replace( ABSPATH, home_url( '/' ), $file_path );
 			$files[ $handle ] = [
 				'path' => $file_path,
 				'deps' => $deps,
@@ -137,7 +137,7 @@ class WpEnqueueManager {
 		}
 		return $files;
 	}
-	
+
 	/**
 	 * Parse directory and fetch vars.
 	 *
@@ -149,10 +149,10 @@ class WpEnqueueManager {
 		if ( ! is_dir( $dir ) ) {
 			return [];
 		}
-		$finder = new Finder();
+		$finder     = new Finder();
 		$registered = [];
 		foreach ( $finder->in( $dir )->name( '*.php' )->files() as $file ) {
-			$path = $file->getPathname();
+			$path      = $file->getPathname();
 			$file_name = basename( $path );
 			if ( preg_match( '#^[_.]#u', $file_name ) ) {
 				continue;
@@ -172,7 +172,7 @@ class WpEnqueueManager {
 		}
 		return $registered;
 	}
-	
+
 	/**
 	 * Make kebab case and snake case to camel case.
 	 *
