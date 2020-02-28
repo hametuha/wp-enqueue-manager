@@ -1,29 +1,49 @@
 language: php
 php:
-  - 5.6
-  - 7.0
-  - 7.1
-  - 7.2
-  - 7.3
+- 5.6
+- 7.0
+- 7.1
+- 7.2
+- 7.3
 notifications:
   email:
     on_success: never
     on_failure: change
 branches:
   only:
-    - master
-    - "/^v?[0-9\\.]+/"
+  - master
+  - "/^v?[0-9\\.]+/"
 cache:
   directories:
-    - vendor
-    - "$HOME/.composer/cache"
+  - vendor
+  - "$HOME/.composer/cache"
 services: mysql
 env:
   matrix:
-    - WP_VERSION=5.0 WP_MULTISITE=0
-    - WP_VERSION=latest WP_MULTISITE=0
+  - WP_VERSION=5.0 WP_MULTISITE=0
+  - WP_VERSION=latest WP_MULTISITE=0
 before_script:
-  - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-  - composer install
+- bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+- composer install
 script:
-  - composer test
+- composer test
+before_deploy:
+  - echo 'Making deploy packages...'
+  - rm -rf .gitignore
+  - rm -rf .git
+  - rm -rf .travis.yml
+  - rm -rf tests
+  - rm -rf bin
+  - rm -rf vendor
+  - zip -r wp-enqueue-manager.zip ./
+deploy:
+  provider: releases
+  api_key:
+    secure: AIDzBNyLP37C20SssA7dDFma1a5daIccz1Xjy4AsHSddyeachsA+Vh7p0SKUzIwi6UzHXJZEQiQdz/s5Y5Y8iaH3o8MdPAJEbmcAaqkDcc7Vi54dRgut6izt2blGdLq4WSd5WbpfSi56rMnYK9IrytTF3vCx/sX0hXF5ZfNn3aJsdZVGaPvr3hsSILUpHaj+HnFmn7csXzgIrM+zuSGBhitjSwKnFy5qQoK1NUCbFPGmFQiINyGOYBoBdUY+wSrEltIxo6IOgH7ZNf6X5C15Prbo01JwX1MWkIQxtmIJUmQNvms3wvJvq55JS8pk09vyx/9DRh6IBIWv5DqQP17XOJz++1m6ebe1Ku328oDCaIThDEDJ/z2qalPKacZ2QmgWy1wlRfthCKCAMsAQrrjbF3B88o9bOuWXFNIoAab03uNaWtG3Ee76sRxCa5hXMreR7OjNfewWpuPWdWQEJfPstUpiIDvd6kU13UVInu4GdatV90UxxEplvKnR5NeDl1Bfqt132zlZlOEVnKpg/6xLkjSGg4lpsYh6AjtCoHhuWAMNGQgTsG61J12DcAX/0TFy+5YZ7LnfLXaK2lAyqI/iOF+F/9QjIQwjO/Lmsvs6tAgb8E/hn9XohGiPLnJmlfxDJGBLTGSQOnCifTOP/fu8vUyZMf9Tz4qjLYkU0k1FE8Q=
+  file: wp-enqueue-manager.zip
+  skip_cleanup: true
+  on:
+    repo: hametuha/wp-enqueue-manager
+    tags: true
+    php: "7.0"
+    env: WP_VERSION=5.0
