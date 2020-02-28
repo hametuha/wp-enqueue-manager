@@ -7,6 +7,7 @@
 /.github export-ignore
 /.git export-ignore
 /.gitignore export-ignore
+/composer.lock export-ignore
 /bin export-ignore
 /tests export-ignore
 

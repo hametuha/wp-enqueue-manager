@@ -34,6 +34,7 @@ before_deploy:
   - rm -rf .travis.yml
   - rm -rf tests
   - rm -rf bin
+  - rm -rf composer.lock
   - rm -rf vendor
   - zip -r wp-enqueue-manager.zip ./
 deploy:
