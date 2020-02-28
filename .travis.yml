@@ -17,6 +17,7 @@ cache:
   directories:
     - vendor
     - "$HOME/.composer/cache"
+services: mysql
 env:
   matrix:
     - WP_VERSION=5.0 WP_MULTISITE=0
