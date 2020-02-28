@@ -186,5 +186,4 @@ class WpEnqueueManager {
 			return ucfirst( $str );
 		}, preg_split( '#(-|_)#u', $string ) ) );
 	}
-
 }

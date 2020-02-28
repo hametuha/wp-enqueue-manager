@@ -45,5 +45,5 @@ deploy:
   on:
     repo: hametuha/wp-enqueue-manager
     tags: true
-    php: "7.0"
+    php: 7.0
     condition: "$WP_VERSION = latest"
