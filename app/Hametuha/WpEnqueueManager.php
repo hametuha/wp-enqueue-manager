@@ -1,7 +1,8 @@
 <?php
 
 namespace Hametuha;
-use Symfony\Component\Finder\Finder;
+
+use Hametuha\WpEnqueueManager\PathFinder;
 
 /**
  * WordPress assets manager
@@ -9,7 +10,7 @@ use Symfony\Component\Finder\Finder;
  * @package wp-enqueue-manager
  */
 class WpEnqueueManager {
-
+	
 	/**
 	 * Constructor.
 	 */
@@ -120,7 +121,7 @@ class WpEnqueueManager {
 			return [];
 		}
 		$files  = [];
-		$finder = new Finder();
+		$finder = new PathFinder();
 		foreach ( $finder->in( $path )->name( "*.{$extension}" )->files() as $file ) {
 			$file_path = $file->getPathname();
 			if ( ! preg_match( $regexp, $file_path, $match ) ) {
@@ -128,7 +129,7 @@ class WpEnqueueManager {
 			}
 			$handle           = $prefix . $match[1];
 			$deps             = self::grab_deps( $file_path );
-			$url              = str_replace( ABSPATH, home_url( '/' ), $file_path );
+			$url              = $finder->path_to_url( $file_path );
 			$files[ $handle ] = [
 				'path' => $file_path,
 				'deps' => $deps,
@@ -149,7 +150,7 @@ class WpEnqueueManager {
 		if ( ! is_dir( $dir ) ) {
 			return [];
 		}
-		$finder     = new Finder();
+		$finder     = new PathFinder();
 		$registered = [];
 		foreach ( $finder->in( $dir )->name( '*.php' )->files() as $file ) {
 			$path      = $file->getPathname();
