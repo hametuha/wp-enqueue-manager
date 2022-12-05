@@ -5,12 +5,12 @@ namespace Hametuha;
 use Hametuha\WpEnqueueManager\PathFinder;
 
 /**
- * WordPress assets manager
+ * WordPress' assets manager
  *
  * @package wp-enqueue-manager
  */
 class WpEnqueueManager {
-	
+
 	/**
 	 * Constructor.
 	 */
