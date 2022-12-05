@@ -60,7 +60,6 @@ jobs:
 
       - name: Install WordPress
         run: bash bin/install-wp-tests.sh wordpress root root 127.0.0.1:3306 ${{ matrix.wp }}
-        if: matrix.php != 5.6
 
       - name: Unit Test
         run: composer test
