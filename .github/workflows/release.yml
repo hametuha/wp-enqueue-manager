@@ -2,39 +2,30 @@ name: CI/CD for PHP Library
 
 on:
   push:
-    branches:
-      - master
     tags:
       - '*'
-  pull_request:
-    branches:
-      - master
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        php: [ '7.2', '8.0', '8.1' ] # PHP versions to check.
-        wp: [ '5.9', 'latest' ]
-    name: UnitTest in WordPress ${{ matrix.wp }} and PHP ${{ matrix.php }}
-    uses: tarosky/workflows/.github/workflows/wp-unit-test.yml@main
-    with:
-      php_version: ${{ matrix.php }}
-      wp_version: ${{ matrix.wp }}
-
-  phpcs:
-    uses: tarosky/workflows/.github/workflows/phpcs.yml@main
-    with:
-      version: 7.2
-
   release:
     name: Create Release Package
-    needs: [ test, phpcs ]
     if: contains(github.ref, 'tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+
+      - name: Fail if tagged commit is not in master branch
+        run: |
+          BRANCHES=$(git branch -r --contains)
+          echo $BRANCHES
+          for BRANCH in $BRANCHES ; do
+            if [[ "$BRANCH" == "origin/master" ]]; then
+              exit 0
+            fi
+          done
+          exit 1
 
       - name: Setup PHP with composer v2
         uses: shivammathur/setup-php@v2
