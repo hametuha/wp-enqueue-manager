@@ -2,7 +2,8 @@
 
 namespace Hametuha;
 
-use Hametuha\WpEnqueueManager\PathFinder;
+use Hametuha\StringUtility\NamingConventions;
+use Hametuha\StringUtility\Path;
 
 /**
  * WordPress' assets manager
@@ -10,6 +11,9 @@ use Hametuha\WpEnqueueManager\PathFinder;
  * @package wp-enqueue-manager
  */
 class WpEnqueueManager {
+
+	use NamingConventions;
+	use Path;
 
 	/**
 	 * Constructor.
@@ -27,10 +31,10 @@ class WpEnqueueManager {
 	 * @param bool   $footer  Should render in footer. Default true.
 	 */
 	public static function register_js( $path, $prefix = '', $version = null, $footer = true ) {
-		$function = function() use ( $path, $prefix, $version, $footer ) {
+		$function = function () use ( $path, $prefix, $version, $footer ) {
 			foreach ( self::parse_dir( $path, 'js', $prefix ) as $handle => $data ) {
 				if ( is_null( $version ) ) {
-					$this_version = filemtime( $data['path'] );
+					$this_version = md5_file( $data['path'] );
 				} else {
 					$this_version = $version;
 				}
@@ -53,10 +57,10 @@ class WpEnqueueManager {
 	 * @param string $screen  Screen. Default all.
 	 */
 	public static function register_styles( $path, $prefix = '', $version = null, $screen = 'all' ) {
-		$function = function() use ( $path, $prefix, $version, $screen ) {
+		$function = function () use ( $path, $prefix, $version, $screen ) {
 			foreach ( self::parse_dir( $path, 'css', $prefix ) as $handle => $data ) {
 				if ( is_null( $version ) ) {
-					$this_version = filemtime( $data['path'] );
+					$this_version = md5_file( $data['path'] );
 				} else {
 					$this_version = $version;
 				}
@@ -93,15 +97,15 @@ class WpEnqueueManager {
 			return [];
 		} else {
 			list( $match, $deps ) = $matches;
-			$deps                 = [];
-			foreach ( $matches[1] as $dep ) {
+			$found                = [];
+			foreach ( $deps as $dep ) {
 				foreach ( array_map( 'trim', explode( ',', $dep ) ) as $d ) {
 					if ( $d ) {
-						$deps[] = $d;
+						$found[] = $d;
 					}
 				}
 			}
-			return $deps;
+			return $found;
 		}
 	}
 
@@ -116,20 +120,19 @@ class WpEnqueueManager {
 	 */
 	public static function parse_dir( $path, $extension, $prefix = '' ) {
 		$extension = ltrim( $extension, '.' );
-		$regexp    = '#/([^._][^/]*)\.' . $extension . '$#u';
+		$regexp    = '#([^._][^/]*)\.' . $extension . '$#u';
 		if ( ! is_dir( $path ) ) {
 			return [];
 		}
-		$files  = [];
-		$finder = new PathFinder();
-		foreach ( $finder->in( $path )->name( "*.{$extension}" )->files() as $file ) {
-			$file_path = $file->getPathname();
-			if ( ! preg_match( $regexp, $file_path, $match ) ) {
+		$files = [];
+		foreach ( self::recursive_parse( $path, $regexp ) as $file_path ) {
+			$base_name = basename( $file_path );
+			if ( ! preg_match( $regexp, $base_name, $match ) ) {
 				continue;
 			}
 			$handle           = $prefix . $match[1];
 			$deps             = self::grab_deps( $file_path );
-			$url              = $finder->path_to_url( $file_path );
+			$url              = self::url( $file_path );
 			$files[ $handle ] = [
 				'path' => $file_path,
 				'deps' => $deps,
@@ -150,17 +153,13 @@ class WpEnqueueManager {
 		if ( ! is_dir( $dir ) ) {
 			return [];
 		}
-		$finder     = new PathFinder();
 		$registered = [];
-		foreach ( $finder->in( $dir )->name( '*.php' )->files() as $file ) {
-			$path      = $file->getPathname();
+		$files      = self::recursive_parse( $dir, '#^[^_.].*\.php$#u' );
+		foreach ( $files as $path ) {
 			$file_name = basename( $path );
-			if ( preg_match( '#^[_.]#u', $file_name ) ) {
-				continue;
-			}
-			$handle   = str_replace( '.php', '', $file_name );
-			$var_name = self::camelize( $handle );
-			$vars     = include $path;
+			$handle    = str_replace( '.php', '', $file_name );
+			$var_name  = self::camelize( $handle );
+			$vars      = include $path;
 			if ( ! is_array( $vars ) ) {
 				continue;
 			}
@@ -175,15 +174,53 @@ class WpEnqueueManager {
 	}
 
 	/**
+	 * Parse directory and returns file names matchin preg.
+	 *
+	 * @param string   $dir   Directory name.
+	 * @param string   $preg  PCRE regexp to filter files.
+	 * @param string[] $files File list.
+	 *
+	 * @return string[]
+	 */
+	public static function recursive_parse( $dir, $preg, $files = [] ) {
+		if ( ! is_dir( $dir ) ) {
+			return $files;
+		}
+		$dir = rtrim( $dir, DIRECTORY_SEPARATOR );
+		foreach ( scandir( $dir ) as $file ) {
+			if ( in_array( $file, [ '.', '..' ], true ) ) {
+				continue;
+			}
+			$path = $dir . DIRECTORY_SEPARATOR . $file;
+			if ( is_dir( $path ) ) {
+				$files = self::recursive_parse( $path, $preg, $files );
+			} elseif ( preg_match( $preg, $file ) ) {
+				$files[] = $path;
+			}
+		}
+		return $files;
+	}
+
+	/**
 	 * Make kebab case and snake case to camel case.
 	 *
-	 * @param string $string String to be cameled.
+	 * @param string $text String to be cameled.
 	 *
 	 * @return string
 	 */
-	public static function camelize( $string ) {
-		return implode( '', array_map( function( $str ) {
-			return ucfirst( $str );
-		}, preg_split( '#(-|_)#u', $string ) ) );
+	public static function camelize( $text ) {
+		$self = new self();
+		return $self->kebab_to_camel( $self->snake_to_kebab( $text ), true );
+	}
+
+	/**
+	 * Convert file path to URL.
+	 *
+	 * @param string $file_path Original file path.
+	 * @return string
+	 */
+	public static function url( $file_path ) {
+		$self = new self();
+		return $self->path_to_url( $file_path );
 	}
 }
