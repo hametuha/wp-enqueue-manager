@@ -209,7 +209,7 @@ class WpEnqueueManager {
 	 */
 	public static function camelize( $string ) {
 		$self = new self();
-		return $self->kebab_to_camel( $self->snake_to_kebab( $string ) );
+		return $self->kebab_to_camel( $self->snake_to_kebab( $string ), true );
 	}
 
 	/**
