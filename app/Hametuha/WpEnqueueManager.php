@@ -12,8 +12,8 @@ use Hametuha\StringUtility\Path;
  */
 class WpEnqueueManager {
 
-	use NamingConventions,
-		Path;
+	use NamingConventions;
+	use Path;
 
 	/**
 	 * Constructor.
@@ -31,7 +31,7 @@ class WpEnqueueManager {
 	 * @param bool   $footer  Should render in footer. Default true.
 	 */
 	public static function register_js( $path, $prefix = '', $version = null, $footer = true ) {
-		$function = function() use ( $path, $prefix, $version, $footer ) {
+		$function = function () use ( $path, $prefix, $version, $footer ) {
 			foreach ( self::parse_dir( $path, 'js', $prefix ) as $handle => $data ) {
 				if ( is_null( $version ) ) {
 					$this_version = md5_file( $data['path'] );
@@ -57,7 +57,7 @@ class WpEnqueueManager {
 	 * @param string $screen  Screen. Default all.
 	 */
 	public static function register_styles( $path, $prefix = '', $version = null, $screen = 'all' ) {
-		$function = function() use ( $path, $prefix, $version, $screen ) {
+		$function = function () use ( $path, $prefix, $version, $screen ) {
 			foreach ( self::parse_dir( $path, 'css', $prefix ) as $handle => $data ) {
 				if ( is_null( $version ) ) {
 					$this_version = md5_file( $data['path'] );
@@ -124,7 +124,7 @@ class WpEnqueueManager {
 		if ( ! is_dir( $path ) ) {
 			return [];
 		}
-		$files  = [];
+		$files = [];
 		foreach ( self::recursive_parse( $path, $regexp ) as $file_path ) {
 			$base_name = basename( $file_path );
 			if ( ! preg_match( $regexp, $base_name, $match ) ) {
@@ -191,7 +191,7 @@ class WpEnqueueManager {
 				continue;
 			}
 			$path = $dir . DIRECTORY_SEPARATOR . $file;
-			if (  is_dir( $path ) ) {
+			if ( is_dir( $path ) ) {
 				$files = self::recursive_parse( $path, $preg, $files );
 			} elseif ( preg_match( $preg, $file ) ) {
 				$files[] = $path;
@@ -203,13 +203,13 @@ class WpEnqueueManager {
 	/**
 	 * Make kebab case and snake case to camel case.
 	 *
-	 * @param string $string String to be cameled.
+	 * @param string $text String to be cameled.
 	 *
 	 * @return string
 	 */
-	public static function camelize( $string ) {
+	public static function camelize( $text ) {
 		$self = new self();
-		return $self->kebab_to_camel( $self->snake_to_kebab( $string ), true );
+		return $self->kebab_to_camel( $self->snake_to_kebab( $text ), true );
 	}
 
 	/**
