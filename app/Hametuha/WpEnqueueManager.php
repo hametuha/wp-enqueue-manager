@@ -154,7 +154,8 @@ class WpEnqueueManager {
 			return [];
 		}
 		$registered = [];
-		foreach ( self::recursive_parse( $dir, '#^[_.]#u' ) as  $path ) {
+		$files      =  self::recursive_parse( $dir, '#^[^_.].*\.php$#u' );
+		foreach ( $files as $path ) {
 			$file_name = basename( $path );
 			$handle    = str_replace( '.php', '', $file_name );
 			$var_name  = self::camelize( $handle );

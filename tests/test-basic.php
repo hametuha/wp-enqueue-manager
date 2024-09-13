@@ -44,14 +44,14 @@ class WpEnqueueManager_Basic_Test extends WP_UnitTestCase {
 		$parsed = WpEnqueueManager::parse_dir( $asset_path, 'js', 'test-' );
 		$this->assertEmpty( $parsed['test-nodep']['deps'] );
 	}
-	
+
 	/**
 	 * Test string helpers.
 	 */
 	function test_string() {
 		$this->assertEquals( 'MyClassName', WpEnqueueManager::camelize( 'my-class_name' ) );
 	}
-	
+
 	/**
 	 * Test wp_localize_script
 	 */
